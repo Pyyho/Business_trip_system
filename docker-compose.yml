@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pkc-business-trips-db
+    environment:
+      POSTGRES_DB: business_trips
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1111
+    ports:
+      - "5432:5432"
+    volumes:
+      - business-trips-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d business_trips"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  business-trips-data:

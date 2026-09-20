@@ -1,0 +1,10 @@
+target/
+.tools/
+.m2/
+.maven-bin.zip
+.jdk-bin.zip
+.idea/
+*.iml
+exports/*.xlsx
+.env
+data/

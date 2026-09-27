@@ -8,8 +8,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import ru.pkc.travel.model.Accommodation;
 import ru.pkc.travel.model.BusinessTrip;
 import ru.pkc.travel.model.Employee;
+import ru.pkc.travel.model.TransportTicket;
+import ru.pkc.travel.model.TripExpense;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -19,7 +22,9 @@ import java.util.List;
 
 public class ExcelExporter implements DataExporter {
     @Override
-    public Path export(List<Employee> employees, List<BusinessTrip> trips, Path target) throws IOException {
+    public Path export(List<Employee> employees, List<BusinessTrip> trips,
+                       List<TransportTicket> tickets, List<Accommodation> accommodations,
+                       List<TripExpense> expenses, Path target) throws IOException {
         Path absolute = target.toAbsolutePath().normalize();
         Path parent = absolute.getParent();
         if (parent != null) Files.createDirectories(parent);
@@ -28,6 +33,9 @@ public class ExcelExporter implements DataExporter {
             CellStyle header = headerStyle(workbook);
             writeEmployees(workbook, employees, header);
             writeTrips(workbook, trips, header);
+            writeTickets(workbook, tickets, header);
+            writeAccommodations(workbook, accommodations, header);
+            writeExpenses(workbook, expenses, header);
             try (OutputStream output = Files.newOutputStream(absolute)) {
                 workbook.write(output);
             }
@@ -67,6 +75,51 @@ public class ExcelExporter implements DataExporter {
             if (trip.getActualCost() != null) row.createCell(8).setCellValue(trip.getActualCost().doubleValue());
         }
         autoSize(sheet, 9);
+    }
+
+    private static void writeTickets(Workbook workbook, List<TransportTicket> tickets, CellStyle header) {
+        Sheet sheet = workbook.createSheet("Билеты");
+        createHeader(sheet, header, "ID", "ID поездки", "Транспорт", "Перевозчик", "Номер",
+                "Откуда", "Куда", "Отправление", "Прибытие", "Стоимость");
+        int index = 1;
+        for (TransportTicket ticket : tickets) {
+            Row row = sheet.createRow(index++);
+            row.createCell(0).setCellValue(ticket.getId()); row.createCell(1).setCellValue(ticket.getTrip().getId());
+            row.createCell(2).setCellValue(ticket.getTransportType().getDisplayName());
+            row.createCell(3).setCellValue(ticket.getCarrier()); row.createCell(4).setCellValue(ticket.getTicketNumber());
+            row.createCell(5).setCellValue(ticket.getDeparturePlace()); row.createCell(6).setCellValue(ticket.getArrivalPlace());
+            row.createCell(7).setCellValue(ticket.getDepartureAt().toString()); row.createCell(8).setCellValue(ticket.getArrivalAt().toString());
+            row.createCell(9).setCellValue(ticket.getCost().doubleValue());
+        }
+        autoSize(sheet, 10);
+    }
+
+    private static void writeAccommodations(Workbook workbook, List<Accommodation> values, CellStyle header) {
+        Sheet sheet = workbook.createSheet("Проживание");
+        createHeader(sheet, header, "ID", "ID поездки", "Гостиница", "Адрес", "Заселение", "Выезд", "Стоимость");
+        int index = 1;
+        for (Accommodation value : values) {
+            Row row = sheet.createRow(index++);
+            row.createCell(0).setCellValue(value.getId()); row.createCell(1).setCellValue(value.getTrip().getId());
+            row.createCell(2).setCellValue(value.getHotelName()); row.createCell(3).setCellValue(value.getAddress());
+            row.createCell(4).setCellValue(value.getCheckInDate().toString()); row.createCell(5).setCellValue(value.getCheckOutDate().toString());
+            row.createCell(6).setCellValue(value.getCost().doubleValue());
+        }
+        autoSize(sheet, 7);
+    }
+
+    private static void writeExpenses(Workbook workbook, List<TripExpense> values, CellStyle header) {
+        Sheet sheet = workbook.createSheet("Расходы");
+        createHeader(sheet, header, "ID", "ID поездки", "Категория", "Дата", "Описание", "Сумма");
+        int index = 1;
+        for (TripExpense value : values) {
+            Row row = sheet.createRow(index++);
+            row.createCell(0).setCellValue(value.getId()); row.createCell(1).setCellValue(value.getTrip().getId());
+            row.createCell(2).setCellValue(value.getCategory().getDisplayName());
+            row.createCell(3).setCellValue(value.getExpenseDate().toString()); row.createCell(4).setCellValue(value.getDescription());
+            row.createCell(5).setCellValue(value.getAmount().doubleValue());
+        }
+        autoSize(sheet, 6);
     }
 
     private static CellStyle headerStyle(Workbook workbook) {

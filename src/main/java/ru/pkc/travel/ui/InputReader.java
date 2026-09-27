@@ -1,6 +1,8 @@
 package ru.pkc.travel.ui;
 
 import ru.pkc.travel.exception.BusinessException;
+import ru.pkc.travel.model.ExpenseCategory;
+import ru.pkc.travel.model.TransportType;
 import ru.pkc.travel.model.TripStatus;
 
 import java.io.BufferedReader;
@@ -10,6 +12,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
 public class InputReader {
@@ -74,6 +77,15 @@ public class InputReader {
         }
     }
 
+    public LocalDateTime readDateTime(String prompt) {
+        String value = readRequired(prompt);
+        try {
+            return LocalDateTime.parse(value.replace(' ', 'T'));
+        } catch (DateTimeParseException e) {
+            throw new BusinessException("Дата и время должны иметь формат ГГГГ-ММ-ДД ЧЧ:ММ.");
+        }
+    }
+
     public TripStatus readStatus(String prompt) {
         TripStatus[] statuses = TripStatus.values();
         for (int i = 0; i < statuses.length; i++) {
@@ -84,6 +96,22 @@ public class InputReader {
             throw new BusinessException("Неизвестный статус.");
         }
         return statuses[selected - 1];
+    }
+
+    public TransportType readTransportType(String prompt) {
+        TransportType[] values = TransportType.values();
+        for (int i = 0; i < values.length; i++) System.out.printf("%d. %s%n", i + 1, values[i]);
+        int selected = readInt(prompt);
+        if (selected < 1 || selected > values.length) throw new BusinessException("Неизвестный вид транспорта.");
+        return values[selected - 1];
+    }
+
+    public ExpenseCategory readExpenseCategory(String prompt) {
+        ExpenseCategory[] values = ExpenseCategory.values();
+        for (int i = 0; i < values.length; i++) System.out.printf("%d. %s%n", i + 1, values[i]);
+        int selected = readInt(prompt);
+        if (selected < 1 || selected > values.length) throw new BusinessException("Неизвестная категория расхода.");
+        return values[selected - 1];
     }
 
     public boolean confirm(String prompt) {

@@ -13,16 +13,22 @@ public final class DatabaseManager {
     private final String url;
     private final String user;
     private final String password;
+    private final boolean demoDataEnabled;
 
     public DatabaseManager() {
         Properties properties = loadProperties();
         url = getSetting("DB_URL", properties, "db.url");
         user = getSetting("DB_USER", properties, "db.user");
         password = getSetting("DB_PASSWORD", properties, "db.password");
+        demoDataEnabled = getBooleanSetting("APP_SEED_DEMO", properties, "app.seed-demo", true);
     }
 
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(url, user, password);
+    }
+
+    public boolean isDemoDataEnabled() {
+        return demoDataEnabled;
     }
 
     public void testConnection() {
@@ -41,6 +47,14 @@ public final class DatabaseManager {
             throw new DataAccessException("Не задан параметр базы данных: " + key);
         }
         return value.trim();
+    }
+
+    private static boolean getBooleanSetting(String environmentName, Properties properties,
+                                             String key, boolean defaultValue) {
+        String environmentValue = System.getenv(environmentName);
+        String value = environmentValue == null || environmentValue.trim().isEmpty()
+                ? properties.getProperty(key) : environmentValue;
+        return value == null || value.trim().isEmpty() ? defaultValue : Boolean.parseBoolean(value.trim());
     }
 
     private static Properties loadProperties() {

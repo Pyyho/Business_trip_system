@@ -78,6 +78,8 @@ class BusinessTripServiceTest {
         assertEquals(new BigDecimal("30000"), statistics.getTotalPlannedCost());
         assertEquals(new BigDecimal("9000"), statistics.getTotalActualCost());
         assertEquals(new BigDecimal("20000"), service.sortByPlannedCostDescending().get(0).getPlannedCost());
+        assertEquals(LocalDate.of(2026, 11, 1), service.sortByStartDateDescending().get(0).getStartDate());
+        assertEquals(new BigDecimal("10000"), service.sortByPlannedCostAscending().get(0).getPlannedCost());
     }
 
     private BusinessTrip createTrip(String cost) {

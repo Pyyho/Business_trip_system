@@ -190,10 +190,16 @@ public class ConsoleApplication {
     }
 
     private void sortMenu() {
-        System.out.println("\n1. По дате начала (по возрастанию)\n2. По плановой стоимости (по убыванию)\n0. Назад");
+        System.out.println("\n1. По дате начала (по возрастанию)"
+                + "\n2. По плановой стоимости (по убыванию)"
+                + "\n3. По дате начала (по убыванию)"
+                + "\n4. По плановой стоимости (по возрастанию)"
+                + "\n0. Назад");
         int action = input.readInt("Ваш выбор: ");
         if (action == 1) printTrips(tripService.sortByStartDate());
         else if (action == 2) printTrips(tripService.sortByPlannedCostDescending());
+        else if (action == 3) printTrips(tripService.sortByStartDateDescending());
+        else if (action == 4) printTrips(tripService.sortByPlannedCostAscending());
         else if (action != 0) throw new BusinessException("Неизвестный пункт.");
     }
 

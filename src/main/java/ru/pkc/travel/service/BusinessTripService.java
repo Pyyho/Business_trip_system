@@ -120,6 +120,20 @@ public class BusinessTripService {
                 .collect(Collectors.toList());
     }
 
+    public List<BusinessTrip> sortByStartDateDescending() {
+        return tripRepository.findAll().stream()
+                .sorted(Comparator.comparing(BusinessTrip::getStartDate).reversed()
+                        .thenComparing(BusinessTrip::getId))
+                .collect(Collectors.toList());
+    }
+
+    public List<BusinessTrip> sortByPlannedCostAscending() {
+        return tripRepository.findAll().stream()
+                .sorted(Comparator.comparing(BusinessTrip::getPlannedCost)
+                        .thenComparing(BusinessTrip::getId))
+                .collect(Collectors.toList());
+    }
+
     public TripStatistics statistics() {
         List<BusinessTrip> trips = tripRepository.findAll();
         long planned = count(trips, TripStatus.PLANNED);

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pkc.travel.fx.MainController">
+    <top>
+        <VBox spacing="8" styleClass="app-header">
+            <Label text="Служебные поездки" styleClass="app-title"/>
+            <Label text="Сотрудники, организация поездок и учёт расходов" styleClass="subtitle"/>
+        </VBox>
+    </top>
+    <center><TabPane fx:id="tabs" tabClosingPolicy="UNAVAILABLE"/></center>
+    <bottom>
+        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="status-bar">
+            <Label fx:id="connection" text="Подключение…" wrapText="true" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="reconnect" text="Подключиться повторно" onAction="#connect"/>
+        </HBox>
+    </bottom>
+</BorderPane>

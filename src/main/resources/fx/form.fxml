@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pkc.travel.fx.FormController" spacing="16" styleClass="workspace">
+    <Label fx:id="title" styleClass="page-title" wrapText="true"/>
+    <Label text="Все поля обязательны. Связанные записи выбираются из списка." styleClass="muted" wrapText="true"/>
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+        <content>
+            <GridPane fx:id="fields" hgap="16" vgap="12" styleClass="form-grid">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="195"/>
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="260"/>
+                </columnConstraints>
+            </GridPane>
+        </content>
+    </ScrollPane>
+    <Label fx:id="error" styleClass="error" wrapText="true"/>
+    <HBox spacing="12" alignment="CENTER_RIGHT">
+        <Button text="Отмена" onAction="#cancel" cancelButton="true"/>
+        <Button fx:id="save" text="Сохранить" onAction="#submit" defaultButton="true" styleClass="primary"/>
+    </HBox>
+</VBox>

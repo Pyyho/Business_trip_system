@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="18" styleClass="workspace">
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Статистика поездок" styleClass="page-title" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="refreshStatistics" text="Обновить"/>
+    </HBox>
+    <Label text="Показатели по всем поездкам в базе данных. Фактические затраты учитывают сумму, указанную при завершении поездки." styleClass="muted" wrapText="true"/>
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+        <content><FlowPane fx:id="metrics" hgap="16" vgap="16"/></content>
+    </ScrollPane>
+</VBox>

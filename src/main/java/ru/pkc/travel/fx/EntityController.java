@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
@@ -17,31 +18,50 @@ import java.util.function.Consumer;
 /** Shared table actions; entity packages define columns, forms and special actions. */
 public abstract class EntityController<T> {
     @FXML private VBox root;
-    @FXML private Label title, count, dateError, filterOneLabel, filterTwoLabel;
+    @FXML private Label title;
+    @FXML private Label count;
+    @FXML private Label dateError;
+    @FXML private Label filterOneLabel;
+    @FXML private Label filterTwoLabel;
     @FXML private TextField search;
-    @FXML private ComboBox<String> filterOne, filterTwo;
-    @FXML private DatePicker from, to;
+    @FXML private ComboBox<String> filterOne;
+    @FXML private ComboBox<String> filterTwo;
+    @FXML private DatePicker from;
+    @FXML private DatePicker to;
     @FXML private HBox dates;
     @FXML private TableView<T> table;
-    @FXML private Button edit, delete, status;
+    @FXML private Button edit;
+    @FXML private Button delete;
+    @FXML private Button status;
     private final ObservableList<T> data = FXCollections.observableArrayList();
     private FilteredList<T> filtered;
     private EntityScreen<T> screen;
     private MainController main;
     private static final String ALL = "Все";
 
-    protected abstract EntityScreen<T> createScreen(TravelContext context, java.util.function.Supplier<EntityReferences> references);
+    protected abstract EntityScreen<T> createScreen(
+            TravelContext context, java.util.function.Supplier<EntityReferences> references);
 
     public final void configure(MainController main) {
         configure(createScreen(main.context(), main::references), main);
     }
 
-    protected final MainController main() { return main; }
-    protected final T selectedItem() { return table.getSelectionModel().getSelectedItem(); }
-    protected String deletionWarning(T selected) { return ""; }
+    protected final MainController main() {
+        return main;
+    }
+
+    protected final T selectedItem() {
+        return table.getSelectionModel().getSelectedItem();
+    }
+
+    protected String deletionWarning(T selected) {
+        return "";
+    }
 
     public void configure(EntityScreen<T> screen, MainController main) {
-        this.screen = screen; this.main = main; title.setText(screen.title());
+        this.screen = screen;
+        this.main = main;
+        title.setText(screen.title());
         filterOneLabel.setText(screen.columns().get(screen.firstFilter()).title());
         filterTwoLabel.setText(screen.columns().get(screen.secondFilter()).title());
         if (screen.columns().size() <= 5) {
@@ -49,103 +69,284 @@ public abstract class EntityController<T> {
         }
         for (var definition : screen.columns()) {
             TableColumn<T, Object> column = new TableColumn<>(definition.title());
-            column.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(definition.value().apply(cell.getValue())));
+            column.setCellValueFactory(
+                    cell -> new ReadOnlyObjectWrapper<>(definition.value().apply(cell.getValue())));
             column.setPrefWidth(definition.title().equals("Поездка") ? 320 : 170);
             column.setComparator(EntityController::compare);
             table.getColumns().add(column);
         }
         filtered = new FilteredList<>(data);
         SortedList<T> sorted = new SortedList<>(filtered);
-        sorted.comparatorProperty().bind(table.comparatorProperty()); table.setItems(sorted);
+        sorted.comparatorProperty().bind(table.comparatorProperty());
+        table.setItems(sorted);
         edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         delete.disableProperty().bind(edit.disableProperty());
-        if (status != null) status.disableProperty().bind(edit.disableProperty());
-        dates.setVisible(screen.date() != null); dates.managedProperty().bind(dates.visibleProperty());
-        search.textProperty().addListener((o,a,b) -> applyFilters());
-        filterOne.valueProperty().addListener((o,a,b) -> applyFilters());
-        filterTwo.valueProperty().addListener((o,a,b) -> applyFilters());
-        from.valueProperty().addListener((o,a,b) -> applyFilters()); to.valueProperty().addListener((o,a,b) -> applyFilters());
-        table.setRowFactory(view -> { TableRow<T> row = new TableRow<>(); row.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2 && !row.isEmpty()) showForm(row.getItem());
-        }); return row; });
+        if (status != null) {
+            status.disableProperty().bind(edit.disableProperty());
+        }
+        dates.setVisible(screen.date() != null);
+        dates.managedProperty().bind(dates.visibleProperty());
+        search.textProperty().addListener((o, a, b) -> applyFilters());
+        filterOne.valueProperty().addListener((o, a, b) -> applyFilters());
+        filterTwo.valueProperty().addListener((o, a, b) -> applyFilters());
+        from.valueProperty().addListener((o, a, b) -> applyFilters());
+        to.valueProperty().addListener((o, a, b) -> applyFilters());
+        table.setRowFactory(
+                view -> {
+                    TableRow<T> row = new TableRow<>();
+                    row.setOnMouseClicked(
+                            e -> {
+                                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                                    showForm(row.getItem());
+                                }
+                            });
+                    return row;
+                });
         reload();
     }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static int compare(Object a, Object b) {
-        if (a == b) return 0; if (a == null) return -1; if (b == null) return 1;
-        if (a.getClass().equals(b.getClass()) && a instanceof Comparable c) return c.compareTo(b);
+        if (a == b) {
+            return 0;
+        }
+        if (a == null) {
+            return -1;
+        }
+        if (b == null) {
+            return 1;
+        }
+        if (a.getClass().equals(b.getClass()) && a instanceof Comparable c) {
+            return c.compareTo(b);
+        }
         return a.toString().compareToIgnoreCase(b.toString());
     }
+
     private void fillFilter(ComboBox<String> combo, int index) {
         String previous = combo.getValue();
         var values = new TreeSet<String>();
-        for (T item : data) values.add(value(item, index));
-        combo.getItems().setAll(ALL); combo.getItems().addAll(values);
+        for (T item : data) {
+            values.add(value(item, index));
+        }
+        combo.getItems().setAll(ALL);
+        combo.getItems().addAll(values);
         combo.setValue(previous != null && values.contains(previous) ? previous : ALL);
         combo.setPromptText(screen.columns().get(index).title());
         combo.setTooltip(new Tooltip(screen.columns().get(index).title()));
     }
-    private String value(T item, int index) { return FormController.display(screen.columns().get(index).value().apply(item)); }
+
+    private String value(T item, int index) {
+        return FormController.display(screen.columns().get(index).value().apply(item));
+    }
+
     private void applyFilters() {
-        if (filtered == null) return;
-        boolean invalid = from.getValue() != null && to.getValue() != null && to.getValue().isBefore(from.getValue());
+        if (filtered == null) {
+            return;
+        }
+        boolean invalid =
+                from.getValue() != null
+                        && to.getValue() != null
+                        && to.getValue().isBefore(from.getValue());
         dateError.setText(invalid ? "Конец периода должен быть не раньше начала." : "");
         String query = search.getText().trim().toLowerCase(Locale.ROOT);
-        filtered.setPredicate(item -> {
-            if (invalid) return false;
-            if (!query.isEmpty() && screen.columns().stream().noneMatch(c -> FormController.display(c.value().apply(item)).toLowerCase(Locale.ROOT).contains(query))) return false;
-            if (!matches(filterOne, value(item, screen.firstFilter())) || !matches(filterTwo, value(item, screen.secondFilter()))) return false;
-            LocalDate day = screen.date() == null ? null : screen.date().apply(item);
-            return day == null || ((from.getValue() == null || !day.isBefore(from.getValue())) && (to.getValue() == null || !day.isAfter(to.getValue())));
-        });
+        filtered.setPredicate(
+                item -> {
+                    if (invalid) {
+                        return false;
+                    }
+                    if (!query.isEmpty()
+                            && screen.columns().stream()
+                                    .noneMatch(
+                                            c ->
+                                                    FormController.display(c.value().apply(item))
+                                                            .toLowerCase(Locale.ROOT)
+                                                            .contains(query))) {
+                        return false;
+                    }
+                    if (!matches(filterOne, value(item, screen.firstFilter()))
+                            || !matches(filterTwo, value(item, screen.secondFilter()))) {
+                        return false;
+                    }
+                    LocalDate day = screen.date() == null ? null : screen.date().apply(item);
+                    return day == null
+                            || ((from.getValue() == null || !day.isBefore(from.getValue()))
+                                    && (to.getValue() == null || !day.isAfter(to.getValue())));
+                });
         count.setText("Показано: " + filtered.size() + " из " + data.size());
     }
-    private boolean matches(ComboBox<String> filter, String value) { return filter.getValue() == null || ALL.equals(filter.getValue()) || filter.getValue().equals(value); }
+
+    private boolean matches(ComboBox<String> filter, String value) {
+        return filter.getValue() == null
+                || ALL.equals(filter.getValue())
+                || filter.getValue().equals(value);
+    }
+
     public void reload() {
         root.setDisable(true);
-        FxTasks.run(screen.load()::get, result -> {
-            data.setAll(result); fillFilter(filterOne, screen.firstFilter()); fillFilter(filterTwo, screen.secondFilter());
-            applyFilters(); root.setDisable(false);
-        }, e -> { root.setDisable(false); FxTasks.error(e); });
+        FxTasks.run(
+                screen.load()::get,
+                result -> {
+                    data.setAll(result);
+                    fillFilter(filterOne, screen.firstFilter());
+                    fillFilter(filterTwo, screen.secondFilter());
+                    applyFilters();
+                    root.setDisable(false);
+                },
+                e -> {
+                    root.setDisable(false);
+                    FxTasks.error(e);
+                });
     }
-    @FXML private void reset() { search.clear(); filterOne.setValue(ALL); filterTwo.setValue(ALL); from.setValue(null); to.setValue(null); }
-    @FXML private void refresh() { reload(); }
-    @FXML private void add() { showForm(null); }
-    @FXML private void edit() { T selected = table.getSelectionModel().getSelectedItem(); if (selected != null) showForm(selected); }
+
+    @FXML
+    private void reset() {
+        search.clear();
+        filterOne.setValue(ALL);
+        filterTwo.setValue(ALL);
+        from.setValue(null);
+        to.setValue(null);
+    }
+
+    @FXML
+    private void refresh() {
+        reload();
+    }
+
+    @FXML
+    private void add() {
+        showForm(null);
+    }
+
+    @FXML
+    private void edit() {
+        T selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            showForm(selected);
+        }
+    }
+
     private void showForm(T selected) {
-        main.loadReferences(() -> openDialog(selected == null ? "Добавить • " + screen.title() : "Редактировать • " + screen.title(),
-                form -> screen.form().accept(selected, form)));
+        main.loadReferences(
+                () ->
+                        openDialog(
+                                selected == null
+                                        ? "Добавить • " + screen.title()
+                                        : "Редактировать • " + screen.title(),
+                                form -> screen.form().accept(selected, form)));
     }
+
     protected final void openDialog(String heading, Consumer<FormController> setup) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fx/form.fxml")); Parent content = loader.load();
-            FormController controller = loader.getController(); controller.configure(heading, main::refreshAll); setup.accept(controller);
-            Stage dialog = new Stage(); dialog.initOwner(root.getScene().getWindow()); dialog.initModality(Modality.WINDOW_MODAL);
-            dialog.setTitle(heading); Scene scene = new Scene(content, 720, 650);
-            scene.getStylesheets().setAll(root.getScene().getStylesheets()); dialog.setScene(scene); dialog.setMinWidth(620); dialog.setMinHeight(480);
-            dialog.setOnCloseRequest(event -> { if (content.lookup("#save").isDisabled()) event.consume(); }); dialog.showAndWait();
-        } catch (IOException e) { FxTasks.error(e); }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fx/form.fxml"));
+            Parent content = loader.load();
+            FormController controller = loader.getController();
+            controller.configure(heading, main::refreshAll);
+            setup.accept(controller);
+            Stage dialog = new Stage();
+            dialog.initOwner(root.getScene().getWindow());
+            dialog.initModality(Modality.WINDOW_MODAL);
+            dialog.setTitle(heading);
+            Scene scene = new Scene(content, 720, 650);
+            scene.getStylesheets().setAll(root.getScene().getStylesheets());
+            dialog.setScene(scene);
+            dialog.setMinWidth(620);
+            dialog.setMinHeight(480);
+            dialog.setOnCloseRequest(
+                    event -> {
+                        if (content.lookup("#save").isDisabled()) {
+                            event.consume();
+                        }
+                    });
+            dialog.showAndWait();
+        } catch (IOException e) {
+            FxTasks.error(e);
+        }
     }
-    @FXML private void delete() {
-        T selected = table.getSelectionModel().getSelectedItem(); if (selected == null) return;
-        String detail = screen.columns().stream().limit(3).map(c -> c.title() + ": " + FormController.display(c.value().apply(selected))).collect(java.util.stream.Collectors.joining("\n"));
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, detail + deletionWarning(selected), ButtonType.YES, ButtonType.CANCEL);
-        confirm.initOwner(root.getScene().getWindow()); confirm.setHeaderText("Удалить запись? • " + screen.title());
-        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.YES) return;
+
+    @FXML
+    private void delete() {
+        T selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        String detail =
+                screen.columns().stream()
+                        .limit(3)
+                        .map(
+                                c ->
+                                        c.title()
+                                                + ": "
+                                                + FormController.display(c.value().apply(selected)))
+                        .collect(java.util.stream.Collectors.joining("\n"));
+        Alert confirm =
+                new Alert(
+                        Alert.AlertType.CONFIRMATION,
+                        detail + deletionWarning(selected),
+                        ButtonType.YES,
+                        ButtonType.CANCEL);
+        confirm.initOwner(root.getScene().getWindow());
+        confirm.setHeaderText("Удалить запись? • " + screen.title());
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.YES) {
+            return;
+        }
         root.setDisable(true);
-        FxTasks.run(() -> { screen.delete().accept(screen.id().applyAsLong(selected)); return null; }, v -> {
-            root.setDisable(false); main.refreshAll();
-        }, e -> { root.setDisable(false); FxTasks.error(e); });
+        FxTasks.run(
+                () -> {
+                    screen.delete().accept(screen.id().applyAsLong(selected));
+                    return null;
+                },
+                v -> {
+                    root.setDisable(false);
+                    main.refreshAll();
+                },
+                e -> {
+                    root.setDisable(false);
+                    FxTasks.error(e);
+                });
     }
-    @FXML private void export() {
-        FileChooser chooser = new FileChooser(); chooser.setTitle("Экспорт • " + screen.title()); chooser.setInitialFileName(screen.title() + ".csv");
+
+    @FXML
+    private void export() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Экспорт • " + screen.title());
+        chooser.setInitialFileName(screen.title() + ".csv");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (UTF-8)", "*.csv"));
-        var file = chooser.showSaveDialog(root.getScene().getWindow()); if (file == null) return;
+        var file = chooser.showSaveDialog(root.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
         var headers = screen.columns().stream().map(EntityScreen.Column::title).toList();
-        var rows = table.getItems().stream().map(item -> screen.columns().stream().map(c -> FormController.display(c.value().apply(item))).toList()).toList();
-        FxTasks.run(() -> { CsvExporter.write(file.toPath(), headers, rows); return rows.size(); }, n -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Сохранено записей: " + n + "\n" + file.getAbsolutePath());
-            alert.setHeaderText("Экспорт завершён"); alert.showAndWait();
-        }, e -> { Alert alert = new Alert(Alert.AlertType.ERROR, "Не удалось сохранить файл. Проверьте права доступа и не открыт ли файл в другой программе."); alert.showAndWait(); });
+        var rows =
+                table.getItems().stream()
+                        .map(
+                                item ->
+                                        screen.columns().stream()
+                                                .map(
+                                                        c ->
+                                                                FormController.display(
+                                                                        c.value().apply(item)))
+                                                .toList())
+                        .toList();
+        FxTasks.run(
+                () -> {
+                    CsvExporter.write(file.toPath(), headers, rows);
+                    return rows.size();
+                },
+                n -> {
+                    Alert alert =
+                            new Alert(
+                                    Alert.AlertType.INFORMATION,
+                                    "Сохранено записей: " + n + "\n" + file.getAbsolutePath());
+                    alert.setHeaderText("Экспорт завершён");
+                    alert.showAndWait();
+                },
+                e -> {
+                    Alert alert =
+                            new Alert(
+                                    Alert.AlertType.ERROR,
+                                    "Не удалось сохранить файл. Проверьте права доступа и не открыт"
+                                            + " ли файл в другой программе.");
+                    alert.showAndWait();
+                });
     }
 }

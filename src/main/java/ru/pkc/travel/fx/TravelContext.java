@@ -16,7 +16,9 @@ public final class TravelContext {
         DatabaseManager db = new DatabaseManager();
         db.testConnection();
         SchemaInitializer.initialize(db);
-        if (db.isDemoDataEnabled()) DemoDataInitializer.initialize(db);
+        if (db.isDemoDataEnabled()) {
+            DemoDataInitializer.initialize(db);
+        }
         var employeeRepo = new JdbcEmployeeRepository(db);
         var tripRepo = new JdbcBusinessTripRepository(db);
         employees = new EmployeeService(employeeRepo, tripRepo);

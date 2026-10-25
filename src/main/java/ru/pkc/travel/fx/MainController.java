@@ -13,11 +13,12 @@ public class MainController {
     @FXML private Label connection;
     @FXML private Button reconnect;
     private TravelContext context;
-    private EntityScreens.References references;
+    private EntityReferences references;
     private final List<EntityController<?>> controllers = new ArrayList<>();
     private FlowPane statistics;
     private boolean connecting;
     public TravelContext context() { return context; }
+    public EntityReferences references() { return references; }
     @FXML public void connect() {
         if (connecting) return;
         connecting = true; reconnect.setDisable(true); connection.setText("Подключение к PostgreSQL…");
@@ -31,7 +32,11 @@ public class MainController {
     }
     private void buildScreens() {
         try {
-            for (EntityScreen<?> screen : EntityScreens.create(context, () -> references)) addScreen(screen);
+            addScreen("employee/employee.fxml", "Сотрудники");
+            addScreen("businesstrip/businesstrip.fxml", "Поездки");
+            addScreen("transportticket/transportticket.fxml", "Билеты");
+            addScreen("accommodation/accommodation.fxml", "Проживание");
+            addScreen("tripexpense/tripexpense.fxml", "Расходы");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fx/statistics.fxml"));
             VBox content = loader.load(); statistics = (FlowPane) loader.getNamespace().get("metrics");
             Button refresh = (Button) loader.getNamespace().get("refreshStatistics"); refresh.setOnAction(e -> refreshStatistics());
@@ -39,16 +44,16 @@ public class MainController {
             tab.setOnSelectionChanged(e -> { if (tab.isSelected()) refreshStatistics(); }); refreshStatistics();
         } catch (IOException e) { FxTasks.error(e); }
     }
-    private <T> void addScreen(EntityScreen<T> screen) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fx/entity.fxml"));
-        var content = loader.<VBox>load(); EntityController<T> controller = loader.getController();
-        controllers.add(controller); Tab tab = new Tab(screen.title(), content); tabs.getTabs().add(tab);
-        controller.configure(screen, this);
+    private void addScreen(String resource, String title) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fx/" + resource));
+        var content = loader.<VBox>load(); EntityController<?> controller = loader.getController();
+        controllers.add(controller); Tab tab = new Tab(title, content); tabs.getTabs().add(tab);
+        controller.configure(this);
         tab.setOnSelectionChanged(e -> { if (tab.isSelected()) controller.reload(); });
     }
     public void loadReferences(Runnable ready) {
         tabs.setDisable(true);
-        FxTasks.run(() -> new EntityScreens.References(context.employees.findAll(), context.trips.findAll()), result -> {
+        FxTasks.run(() -> new EntityReferences(context.employees.findAll(), context.trips.findAll()), result -> {
             references = result; tabs.setDisable(false); ready.run();
         }, e -> { tabs.setDisable(false); FxTasks.error(e); });
     }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pkc.travel.fx.businesstrip.BusinessTripController" fx:id="root" spacing="14" styleClass="workspace">
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label fx:id="title" text="Поездки" styleClass="page-title" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        <Button text="Обновить" onAction="#refresh"/>
+        <Button text="Экспорт CSV" onAction="#export"/>
+        <Button text="+ Добавить" onAction="#add" styleClass="primary"/>
+    </HBox>
+    <FlowPane hgap="10" vgap="10" rowValignment="BOTTOM" styleClass="filters">
+        <VBox spacing="4"><Label text="Поиск" styleClass="muted"/><TextField fx:id="search" promptText="Поиск по всем полям…" prefWidth="280"/></VBox>
+        <VBox spacing="4"><Label fx:id="filterOneLabel" styleClass="muted"/><ComboBox fx:id="filterOne" prefWidth="220"/></VBox>
+        <VBox spacing="4"><Label fx:id="filterTwoLabel" styleClass="muted"/><ComboBox fx:id="filterTwo" prefWidth="260"/></VBox>
+        <Button text="Сбросить" onAction="#reset"/>
+    </FlowPane>
+    <HBox fx:id="dates" spacing="10" alignment="CENTER_LEFT">
+        <Label text="Период начала / даты записи:"/>
+        <DatePicker fx:id="from" promptText="С даты" editable="false" prefWidth="155"/>
+        <DatePicker fx:id="to" promptText="По дату" editable="false" prefWidth="155"/>
+    </HBox>
+    <Label fx:id="dateError" styleClass="error" wrapText="true" visible="${dateError.text != ''}" managed="${dateError.visible}"/>
+    <TableView fx:id="table" VBox.vgrow="ALWAYS">
+        <placeholder><Label text="Записей нет. Добавьте запись или измените фильтры."/></placeholder>
+    </TableView>
+    <FlowPane hgap="10" vgap="10">
+        <Button fx:id="edit" text="Редактировать" onAction="#edit"/>
+        <Button fx:id="status" text="Изменить статус" onAction="#changeStatus"/>
+        <Button fx:id="delete" text="Удалить" onAction="#delete" styleClass="danger"/>
+    </FlowPane>
+    <Label fx:id="count" styleClass="muted" wrapText="true"/>
+</VBox>

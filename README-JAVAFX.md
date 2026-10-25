@@ -59,7 +59,22 @@ mvn javafx:run
 `src/main/resources/fx/` — FXML главного окна, таблиц, форм и статистики, общий CSS.
 `fx/MainController` — навигация, подключение и статистика.
 `fx/EntityController` — общие операции таблиц и диалогов.
-`fx/EntityScreens` — определения столбцов и полей для пяти сущностей, вызовы сервисов.
+Для каждой сущности выделены свой пакет JavaFX и отдельный FXML:
+
+| Сущность | Контроллер в `src/main/java/ru/pkc/travel/fx/` | Разметка в `src/main/resources/fx/` |
+| --- | --- | --- |
+| Сотрудник | `employee/EmployeeController.java` | `employee/employee.fxml` |
+| Служебная поездка | `businesstrip/BusinessTripController.java` | `businesstrip/businesstrip.fxml` |
+| Транспортный билет | `transportticket/TransportTicketController.java` | `transportticket/transportticket.fxml` |
+| Проживание | `accommodation/AccommodationController.java` | `accommodation/accommodation.fxml` |
+| Фактический расход | `tripexpense/TripExpenseController.java` | `tripexpense/tripexpense.fxml` |
+
+Контроллер сущности определяет столбцы, фильтры, поля формы и вызовы своего сервиса.
+`BusinessTripController` также отвечает за смену статуса поездки и предупреждение об удалении связанных данных.
+`fx/EntityScreen` — описание экрана, `fx/EntityReferences` — связанные записи для выбора в формах.
+Общие операции таблиц наследуются от `EntityController`; шаблон диалога `form.fxml` и CSS используются всеми сущностями.
+Запуск через `run.ps1` остаётся общим для всего приложения.
+
 `fx/FormController` — элементы форм и проверка формата ввода.
 `fx/TravelContext` — сборка сервисов и JDBC-репозиториев.
 `fx/FxTasks` — выполнение работы с БД в фоновом потоке; обновление интерфейса в JavaFX Application Thread.

@@ -9,13 +9,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
-import ru.pkc.travel.model.*;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class EntityController<T> {
+/** Shared table actions; entity packages define columns, forms and special actions. */
+public abstract class EntityController<T> {
     @FXML private VBox root;
     @FXML private Label title, count, dateError, filterOneLabel, filterTwoLabel;
     @FXML private TextField search;
@@ -29,6 +29,16 @@ public class EntityController<T> {
     private EntityScreen<T> screen;
     private MainController main;
     private static final String ALL = "Все";
+
+    protected abstract EntityScreen<T> createScreen(TravelContext context, java.util.function.Supplier<EntityReferences> references);
+
+    public final void configure(MainController main) {
+        configure(createScreen(main.context(), main::references), main);
+    }
+
+    protected final MainController main() { return main; }
+    protected final T selectedItem() { return table.getSelectionModel().getSelectedItem(); }
+    protected String deletionWarning(T selected) { return ""; }
 
     public void configure(EntityScreen<T> screen, MainController main) {
         this.screen = screen; this.main = main; title.setText(screen.title());
@@ -48,8 +58,8 @@ public class EntityController<T> {
         SortedList<T> sorted = new SortedList<>(filtered);
         sorted.comparatorProperty().bind(table.comparatorProperty()); table.setItems(sorted);
         edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-        delete.disableProperty().bind(edit.disableProperty()); status.disableProperty().bind(edit.disableProperty());
-        status.setVisible(screen.title().equals("Поездки")); status.managedProperty().bind(status.visibleProperty());
+        delete.disableProperty().bind(edit.disableProperty());
+        if (status != null) status.disableProperty().bind(edit.disableProperty());
         dates.setVisible(screen.date() != null); dates.managedProperty().bind(dates.visibleProperty());
         search.textProperty().addListener((o,a,b) -> applyFilters());
         filterOne.valueProperty().addListener((o,a,b) -> applyFilters());
@@ -106,7 +116,7 @@ public class EntityController<T> {
         main.loadReferences(() -> openDialog(selected == null ? "Добавить • " + screen.title() : "Редактировать • " + screen.title(),
                 form -> screen.form().accept(selected, form)));
     }
-    private void openDialog(String heading, Consumer<FormController> setup) {
+    protected final void openDialog(String heading, Consumer<FormController> setup) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fx/form.fxml")); Parent content = loader.load();
             FormController controller = loader.getController(); controller.configure(heading, main::refreshAll); setup.accept(controller);
@@ -116,20 +126,10 @@ public class EntityController<T> {
             dialog.setOnCloseRequest(event -> { if (content.lookup("#save").isDisabled()) event.consume(); }); dialog.showAndWait();
         } catch (IOException e) { FxTasks.error(e); }
     }
-    @FXML private void changeStatus() {
-        T selected = table.getSelectionModel().getSelectedItem();
-        if (!(selected instanceof BusinessTrip trip)) return;
-        openDialog("Статус поездки • " + trip.getDestination(), form -> {
-            var target = form.choice("Новый статус", Arrays.stream(TripStatus.values()).filter(trip.getStatus()::canTransitionTo).toList(), null);
-            var actual = form.money("Факт, ₽ (только для завершения)", java.math.BigDecimal.ZERO);
-            form.onSave(() -> { var state = target.get(); var sum = state == TripStatus.COMPLETED ? actual.get() : null;
-                return () -> main.context().trips.changeStatus(trip.getId(), state, sum); });
-        });
-    }
     @FXML private void delete() {
         T selected = table.getSelectionModel().getSelectedItem(); if (selected == null) return;
         String detail = screen.columns().stream().limit(3).map(c -> c.title() + ": " + FormController.display(c.value().apply(selected))).collect(java.util.stream.Collectors.joining("\n"));
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, detail + (selected instanceof BusinessTrip ? "\nТакже будут удалены билеты, проживание и расходы этой поездки." : ""), ButtonType.YES, ButtonType.CANCEL);
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, detail + deletionWarning(selected), ButtonType.YES, ButtonType.CANCEL);
         confirm.initOwner(root.getScene().getWindow()); confirm.setHeaderText("Удалить запись? • " + screen.title());
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.YES) return;
         root.setDisable(true);

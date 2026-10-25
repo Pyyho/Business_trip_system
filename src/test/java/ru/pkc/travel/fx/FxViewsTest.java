@@ -23,9 +23,16 @@ class FxViewsTest {
     }
     @Test void fxmlResourcesAndHandlersLoad() throws Exception {
         fx(() -> {
-            for (String file : List.of("main", "entity", "form", "statistics")) {
-                Parent view = FXMLLoader.load(getClass().getResource("/fx/" + file + ".fxml"));
+            for (String file : List.of("main", "form", "statistics", "employee/employee",
+                    "businesstrip/businesstrip", "transportticket/transportticket",
+                    "accommodation/accommodation", "tripexpense/tripexpense")) {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fx/" + file + ".fxml"));
+                Parent view = loader.load();
                 assertNotNull(view);
+                if (loader.getController() instanceof EntityController<?>) {
+                    Button status = (Button) loader.getNamespace().get("status");
+                    assertEquals(file.startsWith("businesstrip/"), status != null);
+                }
             }
             return null;
         });
@@ -33,7 +40,7 @@ class FxViewsTest {
     @Test void tableCombinesSearchFiltersAndNumericSorting() throws Exception {
         CountDownLatch loaded = new CountDownLatch(1);
         FXMLLoader loader = fx(() -> {
-            FXMLLoader fxml = new FXMLLoader(getClass().getResource("/fx/entity.fxml"));
+            FXMLLoader fxml = new FXMLLoader(getClass().getResource("/fx/employee/employee.fxml"));
             Parent root = fxml.load();
             root.disableProperty().addListener((o,a,b) -> { if (!b) loaded.countDown(); });
             EntityScreen<Employee> screen = new EntityScreen<>("Сотрудники", List.of(

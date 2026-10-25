@@ -34,6 +34,9 @@ public class EntityController<T> {
         this.screen = screen; this.main = main; title.setText(screen.title());
         filterOneLabel.setText(screen.columns().get(screen.firstFilter()).title());
         filterTwoLabel.setText(screen.columns().get(screen.secondFilter()).title());
+        if (screen.columns().size() <= 5) {
+            table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        }
         for (var definition : screen.columns()) {
             TableColumn<T, Object> column = new TableColumn<>(definition.title());
             column.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(definition.value().apply(cell.getValue())));
@@ -85,7 +88,7 @@ public class EntityController<T> {
             LocalDate day = screen.date() == null ? null : screen.date().apply(item);
             return day == null || ((from.getValue() == null || !day.isBefore(from.getValue())) && (to.getValue() == null || !day.isAfter(to.getValue())));
         });
-        count.setText("Показано: " + filtered.size() + " из " + data.size() + "  •  Сортировка: нажмите заголовок столбца; Shift — несколько столбцов");
+        count.setText("Показано: " + filtered.size() + " из " + data.size());
     }
     private boolean matches(ComboBox<String> filter, String value) { return filter.getValue() == null || ALL.equals(filter.getValue()) || filter.getValue().equals(value); }
     public void reload() {

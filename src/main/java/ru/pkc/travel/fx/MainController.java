@@ -23,7 +23,7 @@ public class MainController {
         connecting = true; reconnect.setDisable(true); connection.setText("Подключение к PostgreSQL…");
         FxTasks.run(TravelContext::new, result -> {
             context = result; connecting = false; reconnect.setVisible(false); reconnect.setManaged(false);
-            connection.setText("PostgreSQL • прямое подключение JDBC"); buildScreens();
+            connection.setText(""); buildScreens();
         }, e -> {
             connecting = false; reconnect.setDisable(false);
             connection.setText("Нет подключения. Запустите PostgreSQL и проверьте DB_URL, DB_USER, DB_PASSWORD."); FxTasks.error(e);

@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pkc.travel.fx.MainController">
     <top>
-        <VBox spacing="8" styleClass="app-header">
+        <VBox spacing="4" styleClass="app-header">
             <Label text="Служебные поездки" styleClass="app-title"/>
             <Label text="Сотрудники, организация поездок и учёт расходов" styleClass="subtitle"/>
         </VBox>

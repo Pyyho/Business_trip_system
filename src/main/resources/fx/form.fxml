@@ -14,7 +14,7 @@
             </GridPane>
         </content>
     </ScrollPane>
-    <Label fx:id="error" styleClass="error" wrapText="true"/>
+    <Label fx:id="error" styleClass="error" wrapText="true" visible="${error.text != ''}" managed="${error.visible}"/>
     <HBox spacing="12" alignment="CENTER_RIGHT">
         <Button text="Отмена" onAction="#cancel" cancelButton="true"/>
         <Button fx:id="save" text="Сохранить" onAction="#submit" defaultButton="true" styleClass="primary"/>

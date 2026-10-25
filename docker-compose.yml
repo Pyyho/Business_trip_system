@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: qwerty
     ports:
-      - "5433:5433"
+      - "5433:5432"
     volumes:
       - business-trips-data:/var/lib/postgresql/data
     healthcheck:

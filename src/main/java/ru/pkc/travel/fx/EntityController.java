@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 
-/** Shared table actions; entity packages define columns, forms and special actions. */
 public abstract class EntityController<T> {
     @FXML private VBox root;
     @FXML private Label title;

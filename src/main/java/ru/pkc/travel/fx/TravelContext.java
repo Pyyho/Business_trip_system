@@ -4,7 +4,6 @@ import ru.pkc.travel.repository.jdbc.*;
 import ru.pkc.travel.service.*;
 import ru.pkc.travel.util.*;
 
-/** Composition root: the desktop client uses the same JDBC layer and rules as KR 1. */
 public final class TravelContext {
     public final EmployeeService employees;
     public final BusinessTripService trips;

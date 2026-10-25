@@ -8,7 +8,6 @@ import ru.pkc.travel.model.*;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Table columns, filters and edit form for TripExpense. */
 public final class TripExpenseController extends EntityController<TripExpense> {
     @Override
     protected EntityScreen<TripExpense> createScreen(

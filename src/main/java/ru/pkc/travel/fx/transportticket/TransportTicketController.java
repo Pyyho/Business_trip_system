@@ -8,7 +8,6 @@ import ru.pkc.travel.model.*;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Table columns, filters and edit form for TransportTicket. */
 public final class TransportTicketController extends EntityController<TransportTicket> {
     @Override
     protected EntityScreen<TransportTicket> createScreen(

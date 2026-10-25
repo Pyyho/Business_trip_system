@@ -8,7 +8,6 @@ import ru.pkc.travel.model.*;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Table columns, filters and edit form for BusinessTrip. */
 public final class BusinessTripController extends EntityController<BusinessTrip> {
     @Override
     protected String deletionWarning(BusinessTrip selected) {

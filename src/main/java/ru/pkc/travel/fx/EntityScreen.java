@@ -3,7 +3,6 @@ package ru.pkc.travel.fx;
 import java.util.List;
 import java.util.function.*;
 
-/** Typed description of an entity screen, without SQL or duplicated table handlers. */
 public record EntityScreen<T>(
         String title,
         List<Column<T>> columns,

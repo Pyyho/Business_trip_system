@@ -16,7 +16,6 @@ import java.time.format.ResolverStyle;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Shared FXML dialog; entity definitions provide fields and invoke their services. */
 public class FormController {
     @FXML private GridPane fields;
     @FXML private Label title;
@@ -76,14 +75,8 @@ public class FormController {
     }
 
     public Supplier<LocalDate> date(String label, LocalDate initial) {
-        DatePicker picker = field(label, new DatePicker(initial));
-        picker.setEditable(false);
-        return () -> {
-            if (picker.getValue() == null) {
-                throw new BusinessException(label + ": выберите дату.");
-            }
-            return picker.getValue();
-        };
+        DateInput picker = field(label, new DateInput(initial));
+        return () -> picker.readValue(label);
     }
 
     public Supplier<LocalDateTime> time(String label, LocalDateTime initial) {

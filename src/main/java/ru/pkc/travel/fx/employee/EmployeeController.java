@@ -1,18 +1,16 @@
 package ru.pkc.travel.fx.employee;
 
-import static ru.pkc.travel.fx.EntityScreen.column;
+import static ru.pkc.travel.fx.EntityController.Screen.column;
 
 import ru.pkc.travel.fx.*;
 import ru.pkc.travel.model.*;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 public final class EmployeeController extends EntityController<Employee> {
     @Override
-    protected EntityScreen<Employee> createScreen(
-            TravelContext c, Supplier<EntityReferences> references) {
-        return new EntityScreen<Employee>(
+    protected Screen<Employee> createScreen(TravelContext c) {
+        return new Screen<Employee>(
                 "Сотрудники",
                 List.of(
                         column("ФИО", Employee::getFullName),

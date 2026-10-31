@@ -6,6 +6,8 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 import ru.pkc.travel.model.TripStatistics;
+import ru.pkc.travel.model.Employee;
+import ru.pkc.travel.model.BusinessTrip;
 
 import java.io.IOException;
 import java.util.*;
@@ -15,7 +17,7 @@ public class MainController {
     @FXML private Label connection;
     @FXML private Button reconnect;
     private TravelContext context;
-    private EntityReferences references;
+    private References references;
     private final List<EntityController<?>> controllers = new ArrayList<>();
     private FlowPane statistics;
     private boolean connecting;
@@ -24,8 +26,15 @@ public class MainController {
         return context;
     }
 
-    public EntityReferences references() {
-        return references;
+    // Связанные объекты загружаются перед открытием формы.
+    private record References(List<Employee> employees, List<BusinessTrip> trips) {}
+
+    public List<Employee> employeesForForm() {
+        return references.employees();
+    }
+
+    public List<BusinessTrip> tripsForForm() {
+        return references.trips();
     }
 
     @FXML
@@ -101,7 +110,7 @@ public class MainController {
     public void loadReferences(Runnable ready) {
         tabs.setDisable(true);
         FxTasks.run(
-                () -> new EntityReferences(context.employees.findAll(), context.trips.findAll()),
+                () -> new References(context.employees.findAll(), context.trips.findAll()),
                 result -> {
                     references = result;
                     tabs.setDisable(false);

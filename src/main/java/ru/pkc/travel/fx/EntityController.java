@@ -13,9 +13,27 @@ import javafx.stage.*;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.*;
 
 public abstract class EntityController<T> {
+    // Контроллер сущности задаёт свои столбцы, фильтры и операции.
+    public record Screen<T>(
+            String title,
+            List<Column<T>> columns,
+            Supplier<List<T>> load,
+            ToLongFunction<T> id,
+            LongConsumer delete,
+            BiConsumer<T, FormController> form,
+            int firstFilter,
+            int secondFilter,
+            Function<T, java.time.LocalDate> date) {
+        public record Column<T>(String title, Function<T, Object> value) {}
+
+        public static <T> Column<T> column(String title, Function<T, Object> value) {
+            return new Column<>(title, value);
+        }
+    }
+
     @FXML private VBox root;
     @FXML private Label title;
     @FXML private Label count;
@@ -34,15 +52,15 @@ public abstract class EntityController<T> {
     @FXML private Button status;
     private final ObservableList<T> data = FXCollections.observableArrayList();
     private FilteredList<T> filtered;
-    private EntityScreen<T> screen;
+    private Screen<T> screen;
     private MainController main;
     private static final String ALL = "Все";
 
-    protected abstract EntityScreen<T> createScreen(
-            TravelContext context, java.util.function.Supplier<EntityReferences> references);
+    protected abstract Screen<T> createScreen(TravelContext context);
 
     public final void configure(MainController main) {
-        configure(createScreen(main.context(), main::references), main);
+        this.main = main;
+        configure(createScreen(main.context()), main);
     }
 
     protected final MainController main() {
@@ -57,7 +75,7 @@ public abstract class EntityController<T> {
         return "";
     }
 
-    public void configure(EntityScreen<T> screen, MainController main) {
+    public void configure(Screen<T> screen, MainController main) {
         this.screen = screen;
         this.main = main;
         title.setText(screen.title());
@@ -314,7 +332,7 @@ public abstract class EntityController<T> {
         if (file == null) {
             return;
         }
-        var headers = screen.columns().stream().map(EntityScreen.Column::title).toList();
+        var headers = screen.columns().stream().map(Screen.Column::title).toList();
         var rows =
                 table.getItems().stream()
                         .map(

@@ -1,18 +1,16 @@
 package ru.pkc.travel.fx.transportticket;
 
-import static ru.pkc.travel.fx.EntityScreen.column;
+import static ru.pkc.travel.fx.EntityController.Screen.column;
 
 import ru.pkc.travel.fx.*;
 import ru.pkc.travel.model.*;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 public final class TransportTicketController extends EntityController<TransportTicket> {
     @Override
-    protected EntityScreen<TransportTicket> createScreen(
-            TravelContext c, Supplier<EntityReferences> references) {
-        return new EntityScreen<TransportTicket>(
+    protected Screen<TransportTicket> createScreen(TravelContext c) {
+        return new Screen<TransportTicket>(
                 "Билеты",
                 List.of(
                         column("Поездка", t -> FormController.display(t.getTrip())),
@@ -31,7 +29,7 @@ public final class TransportTicketController extends EntityController<TransportT
                     var trip =
                             f.choice(
                                     "Поездка",
-                                    references.get().trips(),
+                                    main().tripsForForm(),
                                     t == null ? null : t.getTrip());
                     var type =
                             f.choice(

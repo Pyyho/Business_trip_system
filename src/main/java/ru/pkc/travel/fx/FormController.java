@@ -75,8 +75,15 @@ public class FormController {
     }
 
     public Supplier<LocalDate> date(String label, LocalDate initial) {
-        DateInput picker = field(label, new DateInput(initial));
-        return () -> picker.readValue(label);
+        DatePicker picker = field(label, new DatePicker(initial));
+        picker.setEditable(false);
+        picker.setPromptText("Выберите дату");
+        return () -> {
+            if (picker.getValue() == null) {
+                throw new BusinessException(label + ": выберите дату в календаре.");
+            }
+            return picker.getValue();
+        };
     }
 
     public Supplier<LocalDateTime> time(String label, LocalDateTime initial) {

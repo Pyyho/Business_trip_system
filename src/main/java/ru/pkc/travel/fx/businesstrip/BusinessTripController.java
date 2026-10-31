@@ -1,12 +1,11 @@
 package ru.pkc.travel.fx.businesstrip;
 
-import static ru.pkc.travel.fx.EntityScreen.column;
+import static ru.pkc.travel.fx.EntityController.Screen.column;
 
 import ru.pkc.travel.fx.*;
 import ru.pkc.travel.model.*;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 public final class BusinessTripController extends EntityController<BusinessTrip> {
     @Override
@@ -46,9 +45,8 @@ public final class BusinessTripController extends EntityController<BusinessTrip>
     }
 
     @Override
-    protected EntityScreen<BusinessTrip> createScreen(
-            TravelContext c, Supplier<EntityReferences> references) {
-        return new EntityScreen<BusinessTrip>(
+    protected Screen<BusinessTrip> createScreen(TravelContext c) {
+        return new Screen<BusinessTrip>(
                 "Поездки",
                 List.of(
                         column("Сотрудник", t -> t.getEmployee().getFullName()),
@@ -66,7 +64,7 @@ public final class BusinessTripController extends EntityController<BusinessTrip>
                     var employee =
                             f.choice(
                                     "Сотрудник",
-                                    references.get().employees(),
+                                    main().employeesForForm(),
                                     t == null ? null : t.getEmployee());
                     var destination =
                             f.text("Направление", t == null ? null : t.getDestination(), 180);

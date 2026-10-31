@@ -2,7 +2,9 @@ package ru.pkc.travel.fx;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import static ru.pkc.travel.fx.EntityScreen.column;
+import static ru.pkc.travel.fx.EntityController.Screen.column;
+
+import ru.pkc.travel.fx.EntityController.Screen;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -77,8 +79,8 @@ class FxViewsTest {
                                             (o, a, b) -> {
                                                 if (!b) loaded.countDown();
                                             });
-                            EntityScreen<Employee> screen =
-                                    new EntityScreen<>(
+                            Screen<Employee> screen =
+                                    new Screen<>(
                                             "Сотрудники",
                                             List.of(
                                                     column("ФИО", Employee::getFullName),
@@ -160,78 +162,4 @@ class FxViewsTest {
                 });
     }
 
-    @Test
-    void formReadsTypedDateWithoutEnter() throws Exception {
-        fx(
-                () -> {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/fx/form.fxml"));
-                    loader.load();
-                    FormController form = loader.getController();
-                    var date = form.date("Начало", java.time.LocalDate.of(2026, 10, 25));
-                    javafx.scene.layout.GridPane fields =
-                            (javafx.scene.layout.GridPane) loader.getNamespace().get("fields");
-                    DatePicker picker =
-                            fields.getChildren().stream()
-                                    .filter(DatePicker.class::isInstance)
-                                    .map(DatePicker.class::cast)
-                                    .findFirst()
-                                    .orElseThrow();
-
-                    assertTrue(picker.isEditable());
-                    assertEquals("25.10.2026", picker.getEditor().getText());
-                    picker.getEditor().setText("29.02.2028");
-
-                    assertEquals(java.time.LocalDate.of(2028, 2, 29), date.get());
-                    assertEquals(date.get(), picker.getValue());
-                    return null;
-                });
-    }
-
-    @Test
-    void invalidTypedDateIsPreservedAndCannotReusePreviousValue() throws Exception {
-        fx(
-                () -> {
-                    DateInput picker = new DateInput(java.time.LocalDate.of(2026, 10, 25));
-                    new javafx.scene.Scene(picker);
-                    picker.applyCss();
-
-                    for (String text : List.of("31.02.2026", "29.02.2026", "2026-10-25", "abc")) {
-                        picker.getEditor().setText(text);
-                        picker.commitValue();
-                        assertEquals(text, picker.getConverter().toString(picker.getValue()));
-                        assertEquals(text, picker.getEditor().getText());
-                        BusinessException error =
-                                assertThrows(
-                                        BusinessException.class, () -> picker.readValue("Начало"));
-                        assertTrue(error.getMessage().contains("дд.мм.гггг"));
-                    }
-
-                    picker.getEditor().setText("26.10.2026");
-                    picker.commitValue();
-                    assertEquals(java.time.LocalDate.of(2026, 10, 26), picker.readValue("Начало"));
-
-                    picker.getEditor().clear();
-                    assertThrows(BusinessException.class, () -> picker.readValue("Начало"));
-                    return null;
-                });
-    }
-
-    @Test
-    void calendarSelectionReplacesInvalidTypedDate() throws Exception {
-        fx(
-                () -> {
-                    DateInput picker = new DateInput(null);
-                    new javafx.scene.Scene(picker);
-                    picker.applyCss();
-                    picker.getEditor().setText("31.02.2026");
-                    picker.commitValue();
-
-                    java.time.LocalDate selected = java.time.LocalDate.of(2026, 11, 10);
-                    picker.setValue(selected);
-
-                    assertEquals("10.11.2026", picker.getEditor().getText());
-                    assertEquals(selected, picker.readValue("Начало"));
-                    return null;
-                });
-    }
 }

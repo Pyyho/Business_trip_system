@@ -44,7 +44,7 @@ mvn javafx:run
 
 Редактирование открывается кнопкой или двойным щелчком по строке.
 Связанные записи выбираются по ФИО/отделу или направлению/сотруднику/датам поездки.
-Технические идентификаторы не выводятся. Время билетов вводится в формате `ЧЧ:мм`, даты в формах можно ввести вручную в формате `дд.мм.гггг` или выбрать в календаре, суммы — максимум с двумя знаками после запятой.
+Технические идентификаторы не выводятся. Время билетов вводится в формате `ЧЧ:мм`, даты выбираются в календаре через обычный `DatePicker`, суммы — максимум с двумя знаками после запятой.
 
 Статус поездки меняется отдельной кнопкой. Список содержит только разрешённые переходы.
 Новая поездка имеет статус «Запланирована»; детали редактируются только в этом статусе.
@@ -54,32 +54,63 @@ mvn javafx:run
 
 Вкладка статистики показывает восемь показателей по всей базе: число поездок, запланированные, активные, завершённые, отменённые, плановый бюджет, фактические затраты и среднюю длительность.
 
-## Структура
+## Как устроен проект
 
-`src/main/resources/fx/` — FXML главного окна, таблиц, форм и статистики, общий CSS.
-`fx/MainController` — навигация, подключение и статистика.
-`fx/EntityController` — общие операции таблиц и диалогов.
-Для каждой сущности выделены свой пакет JavaFX и отдельный FXML:
+Для каждой из пяти сущностей сохраняется одна цепочка:
 
-| Сущность | Контроллер в `src/main/java/ru/pkc/travel/fx/` | Разметка в `src/main/resources/fx/` |
-| --- | --- | --- |
-| Сотрудник | `employee/EmployeeController.java` | `employee/employee.fxml` |
-| Служебная поездка | `businesstrip/BusinessTripController.java` | `businesstrip/businesstrip.fxml` |
-| Транспортный билет | `transportticket/TransportTicketController.java` | `transportticket/transportticket.fxml` |
-| Проживание | `accommodation/AccommodationController.java` | `accommodation/accommodation.fxml` |
-| Фактический расход | `tripexpense/TripExpenseController.java` | `tripexpense/tripexpense.fxml` |
+```text
+FXML → контроллер сущности → Service → JDBC-репозиторий → PostgreSQL
+```
 
-Контроллер сущности определяет столбцы, фильтры, поля формы и вызовы своего сервиса.
-`BusinessTripController` также отвечает за смену статуса поездки и предупреждение об удалении связанных данных.
-`fx/EntityScreen` — описание экрана, `fx/EntityReferences` — связанные записи для выбора в формах.
-Общие операции таблиц наследуются от `EntityController`; шаблон диалога `form.fxml` и CSS используются всеми сущностями.
-Запуск через `run.ps1` остаётся общим для всего приложения.
+FXML описывает окно и кнопки. Контроллер обрабатывает действия пользователя. Service проверяет бизнес-правила. JDBC-репозиторий выполняет SQL. Model хранит поля записи. Интерфейс Repository задаёт методы доступа к данным, а класс Jdbc…Repository реализует их для PostgreSQL.
 
-`fx/FormController` — элементы форм и проверка формата ввода.
-`fx/TravelContext` — сборка сервисов и JDBC-репозиториев.
-`fx/FxTasks` — выполнение работы с БД в фоновом потоке; обновление интерфейса в JavaFX Application Thread.
-`fx/CsvExporter` — CSV-экспорт без зависимости от интерфейса.
-Бизнес-правила и доступ к PostgreSQL остаются в пакетах `service` и `repository/jdbc` из КР №1.
+### Пять частей для изучения и распределения работы
+
+Java-файлы находятся внутри `src/main/java/ru/pkc/travel/`, FXML — внутри `src/main/resources/fx/`. У каждой сущности есть своя модель в `model`, сервис в `service`, интерфейс в `repository` и реализация в `repository/jdbc`.
+
+| Сущность | Контроллер в `fx/` | FXML | Модель → сервис → интерфейс → JDBC-класс |
+| --- | --- | --- | --- |
+| Сотрудник | `employee/EmployeeController.java` | `employee/employee.fxml` | `Employee` → `EmployeeService` → `EmployeeRepository` → `JdbcEmployeeRepository` |
+| Поездка | `businesstrip/BusinessTripController.java` | `businesstrip/businesstrip.fxml` | `BusinessTrip` → `BusinessTripService` → `BusinessTripRepository` → `JdbcBusinessTripRepository` |
+| Билет | `transportticket/TransportTicketController.java` | `transportticket/transportticket.fxml` | `TransportTicket` → `TransportTicketService` → `TransportTicketRepository` → `JdbcTransportTicketRepository` |
+| Проживание | `accommodation/AccommodationController.java` | `accommodation/accommodation.fxml` | `Accommodation` → `AccommodationService` → `AccommodationRepository` → `JdbcAccommodationRepository` |
+| Расход | `tripexpense/TripExpenseController.java` | `tripexpense/tripexpense.fxml` | `TripExpense` → `TripExpenseService` → `TripExpenseRepository` → `JdbcTripExpenseRepository` |
+
+У сотрудника может быть несколько поездок. Билеты, проживание и расходы относятся к поездке. В формах эти связи выбираются из списков, идентификаторы вручную не вводятся.
+
+### Общая часть JavaFX: семь файлов
+
+В пакете `fx` осталось семь общих Java-файлов и пять контроллеров в подпакетах сущностей:
+
+| Файл | Ответственность |
+| --- | --- |
+| `TravelApplication.java` | Точка входа: создаёт Stage и Scene, загружает `main.fxml` и CSS. |
+| `MainController.java` | Создаёт вкладки, загружает списки для выбора связей и показывает статистику. |
+| `TravelContext.java` | Создаёт JDBC-репозитории и сервисы, которые используют контроллеры. |
+| `EntityController.java` | Общие действия таблиц: загрузка, поиск, фильтры, сортировка, открытие формы, подтверждение удаления и выбор пути экспорта. |
+| `FormController.java` | Общая форма `form.fxml`: поля, выбор связанных объектов, чтение и проверка ввода, сохранение. |
+| `FxTasks.java` | Выполняет операции в фоновом потоке, возвращает результат в поток JavaFX и показывает понятные ошибки. |
+| `CsvExporter.java` | Записывает переданные строки в CSV. |
+
+Каждый из пяти контроллеров наследует `EntityController` и описывает свои столбцы, два фильтра, поля формы и вызовы сервиса. Вложенная запись `EntityController.Screen` хранит это описание рядом с кодом таблицы. `BusinessTripController` дополнительно отвечает за смену статуса и предупреждение о связанных данных при удалении.
+
+Описание экрана находится внутри `EntityController`, временные списки связанных объектов — внутри `MainController`. Формы используют обычный `DatePicker` без дополнительного класса для дат. Дата выбирается через календарь; обязательность даты проверяет `FormController`, а допустимость периода — сервис сущности.
+
+Общий FXML формы, CSS, сервисы и JDBC-репозитории сохранены отдельно по назначению. Они нужны для выполнения требований КР №2 и используются несколькими экранами. Консольная часть КР №1 также сохранена.
+
+### Пример: что происходит при добавлении билета
+
+1. Кнопка «Добавить» в `transportticket.fxml` вызывает общий обработчик `EntityController.add()`.
+2. `MainController.loadReferences()` загружает сотрудников и поездки, затем открывается `form.fxml`.
+3. `TransportTicketController` задаёт поля билета. Список поездок берёт через `main().tripsForForm()`.
+4. `FormController` читает поля и проверяет формат дат, время, суммы и обязательные значения.
+5. `TransportTicketService.create()` проверяет статус поездки, период билета и уникальность номера.
+6. `JdbcTransportTicketRepository` сохраняет билет в PostgreSQL через `DatabaseManager`.
+7. После сохранения `MainController.refreshAll()` обновляет таблицы и статистику.
+
+Та же последовательность используется у остальных сущностей. При редактировании поля заполняются текущими значениями. Удаление проходит через подтверждение в `EntityController`, затем через сервис и репозиторий.
+
+Для объяснения кода своей сущности пройдите одну строку таблицы выше и покажите её связь с общей формой и общим контроллером таблицы. SQL остаётся в `repository/jdbc`, бизнес-правила — в `service`.
 
 `mvn test` запускает тесты сервисов, FXML, фильтрации, сортировки, валидации и экспорта. Для тестов JavaFX нужен рабочий графический сеанс; PostgreSQL им не требуется.
 
